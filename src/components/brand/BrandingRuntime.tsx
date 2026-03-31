@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { resolveBrandingLogoUrl, useBrandingStore } from '../../store/brandingStore'
+import { bootstrapPublicBranding, resolveBrandingLogoUrl, useBrandingStore } from '../../store/brandingStore'
 
 function upsertHeadLink(rel: string, href: string, type?: string) {
   const selector = `link[rel="${rel}"]`
@@ -18,6 +18,10 @@ function upsertHeadLink(rel: string, href: string, type?: string) {
 export function BrandingRuntime() {
   const config = useBrandingStore((state) => state.config)
   const faviconUrl = resolveBrandingLogoUrl(config, 'favicon')
+
+  useEffect(() => {
+    void bootstrapPublicBranding()
+  }, [])
 
   useEffect(() => {
     upsertHeadLink('icon', faviconUrl, 'image/png')

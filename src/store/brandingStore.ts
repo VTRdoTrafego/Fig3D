@@ -259,28 +259,28 @@ export function getBrandingConfigSnapshot() {
  * (ou URL em VITE_PUBLIC_BRANDING_URL). Nao persiste em localStorage para atualizar a cada visita.
  */
 export async function bootstrapPublicBranding(): Promise<void> {
-  if (typeof window === 'undefined') return
-  if (window.localStorage.getItem(BRANDING_STORAGE_KEY)) return
-
-  const envUrl =
-    typeof import.meta.env.VITE_PUBLIC_BRANDING_URL === 'string' ? import.meta.env.VITE_PUBLIC_BRANDING_URL.trim() : ''
-
-  let fetchUrl: string
-  if (envUrl && /^https?:\/\//i.test(envUrl)) {
-    fetchUrl = envUrl
-  } else {
-    const root = new URL(import.meta.env.BASE_URL || '/', window.location.origin).href
-    const path = envUrl && !/^https?:\/\//i.test(envUrl) ? envUrl.replace(/^\//, '') : 'branding.public.json'
-    fetchUrl = new URL(path, root).href
-  }
-
   try {
+    if (typeof window === 'undefined') return
+    if (window.localStorage.getItem(BRANDING_STORAGE_KEY)) return
+
+    const envUrl =
+      typeof import.meta.env.VITE_PUBLIC_BRANDING_URL === 'string' ? import.meta.env.VITE_PUBLIC_BRANDING_URL.trim() : ''
+
+    let fetchUrl: string
+    if (envUrl && /^https?:\/\//i.test(envUrl)) {
+      fetchUrl = envUrl
+    } else {
+      const root = new URL(import.meta.env.BASE_URL || '/', window.location.origin).href
+      const path = envUrl && !/^https?:\/\//i.test(envUrl) ? envUrl.replace(/^\//, '') : 'branding.public.json'
+      fetchUrl = new URL(path, root).href
+    }
+
     const res = await fetch(fetchUrl, { cache: 'no-store', credentials: 'omit' })
     if (!res.ok) return
     const data = (await res.json()) as Partial<AppBrandingConfig>
     const next = withUpdatedAt(sanitizeBrandingConfig(data, { strictRemoteUrls: true }))
     useBrandingStore.setState({ config: next })
   } catch {
-    /* rede, 404 ou JSON invalido: mantem default do create() */
+    /* URL invalida, rede, 404, JSON invalido: mantem branding atual */
   }
 }
