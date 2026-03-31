@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import builtInPublicBranding from '../data/publicBranding.default.json'
 
 export type BrandingLogoContext = 'primary' | 'header' | 'public' | 'splash' | 'favicon'
 
@@ -44,7 +45,8 @@ interface BrandingState {
 }
 
 const BRANDING_STORAGE_KEY = 'fig3d-branding-config-v1'
-const BRANDING_FALLBACK_LOGO = '/fig3d-logo.png'
+/** Asset estático servido de public/ (evita 404 se PNG de marca nao existir no deploy). */
+const BRANDING_FALLBACK_LOGO = '/favicon.svg'
 
 function nowIso() {
   return new Date().toISOString()
@@ -254,9 +256,15 @@ export function getBrandingConfigSnapshot() {
   return useBrandingStore.getState().config
 }
 
+function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0
+}
+
 /**
- * Visitantes na VPS nao tem localStorage do admin: carrega `branding.public.json` na mesma origem
- * (ou URL em VITE_PUBLIC_BRANDING_URL). Nao persiste em localStorage para atualizar a cada visita.
+ * Visitantes sem localStorage do admin:
+ * 1) Tenta `branding.public.json` na origem (ou VITE_PUBLIC_BRANDING_URL).
+ * 2) Se nao houver / vazio / erro, aplica `src/data/publicBranding.default.json` embutido no JS do deploy.
+ * Assim basta enviar a pasta dist/; nao depende de arquivo JSON extra no servidor (opcional para sobrescrever).
  */
 export async function bootstrapPublicBranding(): Promise<void> {
   try {
@@ -275,12 +283,28 @@ export async function bootstrapPublicBranding(): Promise<void> {
       fetchUrl = new URL(path, root).href
     }
 
-    const res = await fetch(fetchUrl, { cache: 'no-store', credentials: 'omit' })
-    if (!res.ok) return
-    const data = (await res.json()) as Partial<AppBrandingConfig>
-    const next = withUpdatedAt(sanitizeBrandingConfig(data, { strictRemoteUrls: true }))
-    useBrandingStore.setState({ config: next })
+    let appliedRemote = false
+    try {
+      const res = await fetch(fetchUrl, { cache: 'no-store', credentials: 'omit' })
+      if (res.ok) {
+        const data: unknown = await res.json()
+        if (isNonEmptyRecord(data)) {
+          const next = withUpdatedAt(sanitizeBrandingConfig(data as Partial<AppBrandingConfig>, { strictRemoteUrls: true }))
+          useBrandingStore.setState({ config: next })
+          appliedRemote = true
+        }
+      }
+    } catch {
+      /* rede ou JSON invalido */
+    }
+
+    if (!appliedRemote && isNonEmptyRecord(builtInPublicBranding)) {
+      const next = withUpdatedAt(
+        sanitizeBrandingConfig(builtInPublicBranding as Partial<AppBrandingConfig>, { strictRemoteUrls: true }),
+      )
+      useBrandingStore.setState({ config: next })
+    }
   } catch {
-    /* URL invalida, rede, 404, JSON invalido: mantem branding atual */
+    /* URL base invalida: mantem branding do create() */
   }
 }

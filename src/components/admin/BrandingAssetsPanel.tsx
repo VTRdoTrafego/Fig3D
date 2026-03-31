@@ -286,10 +286,11 @@ export function BrandingAssetsPanel() {
     anchor.download = 'branding.public.json'
     anchor.click()
     URL.revokeObjectURL(url)
-    toast.success('Gerado branding.public.json para o deploy publico.')
-    toast.message('Coloque o arquivo em public/ antes do build ou em dist/ na VPS. GIFs de demo precisam de URL HTTPS publica (nao data:/blob:).', {
-      duration: 8000,
-    })
+    toast.success('Gerado branding.public.json.')
+    toast.message(
+      'Deploy simples: renomeie para publicBranding.default.json e substitua src/data/publicBranding.default.json, depois npm run build (vai dentro do JS). Ou use como branding.public.json no servidor / dist para mudar sem rebuild.',
+      { duration: 10000 },
+    )
   }
 
   return (
@@ -299,7 +300,7 @@ export function BrandingAssetsPanel() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary-2)]">Painel administrativo</p>
           <h2 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">Identidade do App / Branding & Assets</h2>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
-            Gerencie logo principal, favicon, splash e assets de demonstracao da landing sem mexer no core. Na VPS, visitantes nao veem o que esta so no seu navegador: use &quot;JSON para VPS&quot; e o arquivo branding.public.json no servidor.
+            Gerencie logo principal, favicon, splash e assets de demonstracao da landing sem mexer no core. Para visitantes na VPS: exporte JSON e copie o conteudo para src/data/publicBranding.default.json antes do build (vai no bundle), ou publique branding.public.json junto do site.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

@@ -21,7 +21,7 @@ import { exportGif } from '../services/exportService'
 import type { Project, ProjectVersion } from '../types/domain'
 import { cn } from '../lib/utils'
 import { exportTransparentAnimation, type ExportFormat } from '../components/editor/export/exportTransparentAnimation'
-import { hasSupabaseEnv, isPublicApp } from '../lib/supabase'
+import { hasSupabaseEnv, isPublicApp, isRemoteSupabaseMode } from '../lib/supabase'
 import { BORDER_CYCLE_STEPS, matchBorderCycleIndex } from '../constants/borderCycle'
 import { BADGE_GEOMETRY_CYCLE, badgeGeometryIcon, badgeGeometryLabel } from '../constants/badgeGeometryCycle'
 import { modelPresets } from '../constants/models'
@@ -436,7 +436,8 @@ export function EditorPage() {
   useEffect(() => {
     const brandingLogo = resolveBrandingLogoUrl(brandingConfig, 'primary')
     if (!brandingLogo) return
-    const hasFallbackLogo = !config.logo.path || config.logo.path === '/fig3d-logo.png' || config.logo.path === '/favicon.svg'
+    const hasFallbackLogo =
+      !config.logo.path || config.logo.path === '/favicon.svg' || config.logo.path === '/fig3d-logo.png'
     if (hasFallbackLogo && config.logo.path !== brandingLogo) {
       setConfig({
         logo: {
@@ -449,6 +450,11 @@ export function EditorPage() {
 
   const ensureProject = async () => {
     if (safeProjectId) return safeProjectId
+    if (isRemoteSupabaseMode && !user?.id) {
+      toast.error('Sessão expirada ou não autenticado. Entre novamente.')
+      navigate('/auth')
+      throw new Error('Não autenticado')
+    }
     const created = await createProject(
       `Novo projeto ${new Date().toLocaleDateString('pt-BR')}`,
       user?.id ?? 'public-user',
@@ -531,7 +537,7 @@ export function EditorPage() {
     })
     try {
       const autoLogo = await getLogoAutoAdjustments(file)
-      if (!hasSupabaseEnv) {
+      if (!hasSupabaseEnv || isPublicApp) {
         const localUrl = URL.createObjectURL(file)
         setConfig({
           logo: {
@@ -541,11 +547,15 @@ export function EditorPage() {
             ...autoLogo,
           },
         })
-        toast.success('Logo aplicada localmente (modo publico).')
+        toast.success('Logo aplicada localmente (modo público).')
+        return
+      }
+      if (!user?.id) {
+        toast.error('Faça login para enviar a logo ao armazenamento.')
         return
       }
       const targetProjectId = await ensureProject()
-      const path = await uploadLogo(file, user?.id ?? 'public-user', targetProjectId)
+      const path = await uploadLogo(file, user.id, targetProjectId)
       const publicUrl = getPublicUrl(path, 'logos')
       setConfig({
         logo: {

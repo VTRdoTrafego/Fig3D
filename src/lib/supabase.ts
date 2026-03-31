@@ -10,3 +10,6 @@ export const hasSupabaseEnv = Boolean(supabaseUrl && supabaseAnonKey)
 export const supabase = hasSupabaseEnv
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null
+
+/** Projetos/storage remotos: Supabase com login obrigatorio (VITE_PUBLIC_MODE=false). */
+export const isRemoteSupabaseMode = !isPublicApp && hasSupabaseEnv && Boolean(supabase)

@@ -8,7 +8,7 @@ type DeepPartial<T> = {
 export const defaultConfig: EditorConfig = {
   modelType: 'circle-rgb-neon',
   logo: {
-    path: '/fig3d-logo.png',
+    path: '/favicon.svg',
     scale: 1,
     x: 0,
     y: 0,

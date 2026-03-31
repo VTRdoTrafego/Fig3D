@@ -1,5 +1,4 @@
 {
-  "about": "OPCIONAL: renomeie para branding.public.json em public/ ou coloque em dist/ para sobrescrever o branding sem novo build. Para deploy so com dist/, edite src/data/publicBranding.default.json e rode npm run build (vai embutido no JS). URLs devem ser HTTPS publicas.",
   "appName": "FIG3D",
   "appTagline": "Sua logo em 3D em segundos, sem precisar pagar pros outros.",
   "shortDescription": "Transforme sua logo em GIF 3D em segundos.",

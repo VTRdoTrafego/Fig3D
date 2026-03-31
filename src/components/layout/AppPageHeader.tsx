@@ -20,7 +20,7 @@ export function AppPageHeader({ eyebrow, title, subtitle, actions, className }: 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <img
-            src="/fig3d-logo.png"
+            src="/favicon.svg"
             alt="FIG3D"
             className="mb-2 h-9 w-9 rounded-xl object-cover"
             loading="lazy"
