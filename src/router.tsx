@@ -1,34 +1,20 @@
-import { lazy, Suspense } from 'react'
 import { Navigate, createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from './components/layout/AppLayout'
+import { EditorPageBoundary } from './components/layout/EditorPageBoundary'
 import { ProtectedRoute } from './components/layout/ProtectedRoute'
+import { RootErrorFallback } from './components/layout/RootErrorFallback'
 import { AuthPage } from './pages/AuthPage'
-import { LoadingState } from './components/ui/States'
-
-const EditorPage = lazy(() => import('./pages/EditorPage'))
-
-function EditorPageBoundary() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-[50vh] items-center justify-center p-8">
-          <LoadingState label="Carregando editor 3D..." />
-        </div>
-      }
-    >
-      <EditorPage />
-    </Suspense>
-  )
-}
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <AuthPage />,
+    errorElement: <RootErrorFallback />,
   },
   {
     path: '/auth',
     element: <Navigate to="/" replace />,
+    errorElement: <RootErrorFallback />,
   },
   {
     path: '/editor',
@@ -37,6 +23,7 @@ export const router = createBrowserRouter([
         <AppLayout />
       </ProtectedRoute>
     ),
+    errorElement: <RootErrorFallback />,
     children: [
       { index: true, element: <EditorPageBoundary /> },
       { path: ':projectId', element: <EditorPageBoundary /> },

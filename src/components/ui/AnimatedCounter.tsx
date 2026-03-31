@@ -27,7 +27,7 @@ export function AnimatedCounter({
     if (!node) return
 
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setRenderValue(value)
+      queueMicrotask(() => setRenderValue(value))
       return
     }
 

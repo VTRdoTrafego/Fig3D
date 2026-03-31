@@ -16,13 +16,7 @@ export function LandingHeroDemoCarousel({ sources }: LandingHeroDemoCarouselProp
     return Array.from({ length: SLIDE_COUNT }, (_, i) => base[i] ?? pad)
   }, [sources])
 
-  const sourcesKey = slides.join('\0')
-
   const [index, setIndex] = useState(0)
-
-  useEffect(() => {
-    setIndex(0)
-  }, [sourcesKey])
 
   useEffect(() => {
     const id = window.setInterval(() => {

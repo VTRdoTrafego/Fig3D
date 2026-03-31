@@ -133,27 +133,29 @@ export function CircleControls({ onUpload, category = 'all', contextual = false 
   }, [category, contextual])
 
   useEffect(() => {
-    if (!contextual) {
-      setOpenSections(['models', 'logo', 'shape', 'surface', 'border', 'lighting', 'scene', 'special', 'animation'])
-      return
-    }
-    if (category === 'logo') {
-      setOpenSections(['logo', 'models'])
-      return
-    }
-    if (category === 'circle') {
-      setOpenSections(['models', 'shape'])
-      return
-    }
-    if (category === 'special') {
-      setOpenSections(['special', 'models'])
-      return
-    }
-    if (category === 'play') {
-      setOpenSections(['animation'])
-      return
-    }
-    setOpenSections(['models'])
+    queueMicrotask(() => {
+      if (!contextual) {
+        setOpenSections(['models', 'logo', 'shape', 'surface', 'border', 'lighting', 'scene', 'special', 'animation'])
+        return
+      }
+      if (category === 'logo') {
+        setOpenSections(['logo', 'models'])
+        return
+      }
+      if (category === 'circle') {
+        setOpenSections(['models', 'shape'])
+        return
+      }
+      if (category === 'special') {
+        setOpenSections(['special', 'models'])
+        return
+      }
+      if (category === 'play') {
+        setOpenSections(['animation'])
+        return
+      }
+      setOpenSections(['models'])
+    })
   }, [category, contextual, isRgbModel])
 
   const modelFilters: Array<{ id: ModelFilter; label: string }> = [

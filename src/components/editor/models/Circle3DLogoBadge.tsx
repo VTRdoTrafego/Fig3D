@@ -427,14 +427,7 @@ export function Circle3DLogoBadge({
         })
 
     return { sideMaterial, texturedFrontMaterial, hiddenFrontMaterial, hiddenSideMaterial }
-  }, [
-    config.logo.color,
-    config.logo.opacity,
-    isGlassPreset,
-    isRgbProfile,
-    logoTexture,
-    suppressPreviewEffects,
-  ])
+  }, [config.logo.color, config.logo.opacity, isRgbProfile, logoTexture, suppressPreviewEffects])
 
   useEffect(() => {
     return () => {

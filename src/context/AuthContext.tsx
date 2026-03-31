@@ -17,10 +17,17 @@ export function AuthProvider({ children }: PropsWithChildren) {
       return
     }
 
-    void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setLoading(false)
-    })
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session)
+      })
+      .catch(() => {
+        setSession(null)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
 
     const {
       data: { subscription },

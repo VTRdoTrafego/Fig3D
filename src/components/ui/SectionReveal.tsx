@@ -22,8 +22,10 @@ export function SectionReveal({
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true)
-      setTransformDone(true)
+      queueMicrotask(() => {
+        setVisible(true)
+        setTransformDone(true)
+      })
       return
     }
 
@@ -49,7 +51,9 @@ export function SectionReveal({
   }, [once])
 
   useEffect(() => {
-    if (!visible) setTransformDone(false)
+    if (!visible) {
+      queueMicrotask(() => setTransformDone(false))
+    }
   }, [visible])
 
   useEffect(() => {

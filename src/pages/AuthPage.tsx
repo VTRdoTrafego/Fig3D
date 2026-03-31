@@ -135,22 +135,15 @@ export function AuthPage() {
     active: false,
     boundEmail: null,
   })
-
-  if (!isPublicApp) {
-    return <LegacyAuthCard />
-  }
-
-  const stats = useMemo(() => getTrialUsageStats(state), [state])
-  const adminSecurity = useMemo(() => getAdminSecurityState(state), [state])
-  const adminPending = Boolean(state && state.role === 'admin' && !state.adminVerifiedAt)
-  const adminVerified = Boolean(state && state.role === 'admin' && state.adminVerifiedAt)
-  const limitReached = Boolean(stats?.limitReached)
-  const hasUnlockedAccess = Boolean(state && (adminVerified || (!adminPending && !limitReached && !deviceLock.active)))
-  const premium = state?.plan === 'premium'
-  const shouldForcePaywall = !adminPending && (limitReached || deviceLock.active)
   const [forcePaywallVisible, setForcePaywallVisible] = useState(false)
-  const splashLogoUrl = resolveBrandingLogoUrl(brandingConfig, 'splash')
+
+  const splashLogoUrl = useMemo(() => {
+    if (!isPublicApp) return ''
+    return resolveBrandingLogoUrl(brandingConfig, 'splash')
+  }, [brandingConfig])
+
   const circleDemoSources = useMemo(() => {
+    if (!isPublicApp) return []
     const perSlot = [
       brandingConfig.demoModel1Url,
       brandingConfig.demoModel2Url,
@@ -184,13 +177,39 @@ export function AuthPage() {
     splashLogoUrl,
   ])
 
+  const carouselResetKey = useMemo(() => circleDemoSources.join('|'), [circleDemoSources])
+
+  const stats = useMemo(() => {
+    if (!isPublicApp) return null
+    return getTrialUsageStats(state)
+  }, [state])
+
+  const adminSecurity = useMemo(() => {
+    if (!isPublicApp) return null
+    return getAdminSecurityState(state)
+  }, [state])
+
+  const adminPending = Boolean(isPublicApp && state && state.role === 'admin' && !state.adminVerifiedAt)
+  const adminVerified = Boolean(isPublicApp && state && state.role === 'admin' && state.adminVerifiedAt)
+  const limitReached = Boolean(stats?.limitReached)
+  const hasUnlockedAccess = Boolean(
+    isPublicApp && state && (adminVerified || (!adminPending && !limitReached && !deviceLock.active)),
+  )
+  const premium = Boolean(state?.plan === 'premium')
+  const shouldForcePaywall = Boolean(isPublicApp && !adminPending && (limitReached || deviceLock.active))
+
   useEffect(() => {
+    if (!isPublicApp) return
     if (shouldForcePaywall) {
       setForcePaywallVisible(true)
       return
     }
     setForcePaywallVisible(false)
   }, [shouldForcePaywall])
+
+  if (!isPublicApp) {
+    return <LegacyAuthCard />
+  }
 
   const submitEmail = async () => {
     const normalized = email.trim().toLowerCase()
@@ -329,7 +348,9 @@ export function AuthPage() {
           </SectionReveal>
 
           <div className="space-y-3">
-            {!adminPending ? <LandingHeroDemoCarousel sources={circleDemoSources} /> : null}
+            {!adminPending ? (
+              <LandingHeroDemoCarousel key={carouselResetKey} sources={circleDemoSources} />
+            ) : null}
             <SectionReveal delayMs={80}>
             <div className="space-y-3">
             {adminPending ? (
