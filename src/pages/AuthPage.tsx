@@ -52,7 +52,7 @@ function LegacyAuthCard() {
   const [loading, setLoading] = useState(false)
 
   if (user) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/editor" replace />
   }
 
   const submit = async () => {
@@ -224,7 +224,7 @@ export function AuthPage() {
       }
       setState(next)
       toast.success('Acesso liberado. Seu teste grátis já está ativo.')
-      navigate('/')
+      navigate('/editor')
     } finally {
       setLoadingEmail(false)
     }
@@ -243,7 +243,7 @@ export function AuthPage() {
       setState(next)
       setAdminCode('')
       toast.success('Código validado com sucesso. Acesso administrativo liberado.')
-      navigate('/')
+      navigate('/editor')
     } catch (error) {
       setState(getAccessGateState())
       toast.error(error instanceof Error ? error.message : 'Falha ao validar código.')
@@ -373,7 +373,7 @@ export function AuthPage() {
 
             {hasUnlockedAccess ? (
               <div className="grid grid-cols-1 gap-2">
-                <GlowButton variant="premium" className="w-full" onClick={() => navigate('/')}>
+                <GlowButton variant="premium" className="w-full" onClick={() => navigate('/editor')}>
                   Entrar no editor e criar GIF 3D
                   <ArrowRight size={14} />
                 </GlowButton>

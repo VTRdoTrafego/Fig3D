@@ -344,10 +344,10 @@ export function EditorPage() {
     if (allowance.allowed) return true
     if (allowance.reason === 'missing_access') {
       toast.error('Informe seu e-mail para liberar o acesso grátis.')
-      navigate('/auth')
+      navigate('/')
     } else if (allowance.reason === 'admin_verification_required') {
       toast.error('Acesso administrativo requer código de autenticação válido.')
-      navigate('/auth')
+      navigate('/')
     } else {
       toast.error('Seu teste grátis terminou. Assine o Premium para continuar.')
       setTrialPaywallOpen(true)
@@ -361,7 +361,7 @@ export function EditorPage() {
     if (!consume.allowed) {
       if (consume.reason === 'admin_verification_required') {
         toast.error('Confirme o código admin para liberar o gerenciamento.')
-        navigate('/auth')
+        navigate('/')
       } else {
         toast.error('Seu limite gratuito foi atingido. Continue no Premium.')
         setTrialPaywallOpen(true)
@@ -452,7 +452,7 @@ export function EditorPage() {
     if (safeProjectId) return safeProjectId
     if (isRemoteSupabaseMode && !user?.id) {
       toast.error('Sessão expirada ou não autenticado. Entre novamente.')
-      navigate('/auth')
+      navigate('/')
       throw new Error('Não autenticado')
     }
     const created = await createProject(

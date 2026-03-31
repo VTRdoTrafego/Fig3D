@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Box, Sparkles, Plus } from 'lucide-react'
+import { Box, Home, Sparkles, Plus } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { BottomNav } from './BottomNav'
 import { MobileTopBar } from './MobileTopBar'
@@ -11,10 +11,10 @@ import { Badge } from '../ui/Badge'
 import { getAccessGateState, getTrialUsageStats, hasAdminAccess } from '../../services/accessGateService'
 import { Fig3DBrandMark } from '../brand/Fig3DBrandMark'
 import { useBrandingStore } from '../../store/brandingStore'
+import { isPublicApp } from '../../lib/supabase'
 
-const navItems = [
-  { label: 'Editor', href: '/editor', icon: Box },
-]
+const editorNavItem = { label: 'Editor', href: '/editor', icon: Box }
+const homeNavItem = { label: 'Início', href: '/', icon: Home }
 
 function isActivePath(pathname: string, href: string) {
   if (href === '/') return pathname === '/'
@@ -31,6 +31,11 @@ export function AppLayout() {
   const trialStats = getTrialUsageStats(accessState)
   const planLabel = accessState?.plan === 'premium' || isAdmin ? 'Premium' : 'Free'
 
+  const bottomNavItems = useMemo(
+    () => (isPublicApp ? [editorNavItem, homeNavItem] : [editorNavItem]),
+    [],
+  )
+
   const pageInfo = useMemo(() => {
     if (location.pathname.startsWith('/editor')) {
       return {
@@ -46,7 +51,7 @@ export function AppLayout() {
 
   const renderNav = (isMobile = false) => (
     <nav className={cn('mt-4 flex flex-col gap-2', isMobile && 'mt-1')}>
-      {navItems.map((item) => {
+      {bottomNavItems.map((item) => {
         const active = isActivePath(location.pathname, item.href)
         const Icon = item.icon
         return (
@@ -96,6 +101,15 @@ export function AppLayout() {
             <Badge className="mt-2" variant="highlight">
               {isAdmin ? 'Administrador verificado' : user?.email ?? 'Modo público'}
             </Badge>
+            {isPublicApp ? (
+              <Link
+                to="/"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] transition hover:border-[rgba(249,115,22,0.35)] hover:bg-[rgba(255,255,255,0.07)] hover:text-[var(--text-primary)]"
+              >
+                <Home size={14} />
+                Voltar à página inicial
+              </Link>
+            ) : null}
           </div>
         </aside>
 
@@ -117,10 +131,22 @@ export function AppLayout() {
           </Link>
         </div>
         {renderNav(true)}
+        {isPublicApp ? (
+          <div className="mt-3 border-t border-[var(--border-soft)] pt-3">
+            <Link
+              to="/"
+              onClick={() => setDrawerOpen(false)}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--border-soft)] text-sm font-medium text-[var(--text-secondary)] hover:bg-[rgba(255,255,255,0.05)] hover:text-[var(--text-primary)]"
+            >
+              <Home size={16} />
+              Página inicial
+            </Link>
+          </div>
+        ) : null}
       </Drawer>
 
       <BottomNav
-        items={navItems.map((item) => ({
+        items={bottomNavItems.map((item) => ({
           ...item,
           active: isActivePath(location.pathname, item.href),
         }))}

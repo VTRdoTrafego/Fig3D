@@ -272,7 +272,7 @@ export function BrandingAssetsPanel() {
   const handleAdminLogout = () => {
     clearAccessGateState()
     toast.success('Sessao administrativa encerrada.')
-    navigate('/auth', { replace: true })
+    navigate('/', { replace: true })
   }
 
   const downloadPublicBrandingJson = () => {

@@ -9,7 +9,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (isPublicApp) {
     if (!hasActiveAccess()) {
-      return <Navigate to="/auth" replace />
+      return <Navigate to="/" replace />
     }
     return <>{children}</>
   }
@@ -21,7 +21,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     )
   }
   if (!user) {
-    return <Navigate to="/auth" replace />
+    return <Navigate to="/" replace />
   }
   return <>{children}</>
 }
