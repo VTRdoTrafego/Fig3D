@@ -68,19 +68,31 @@ export function SectionReveal({
   const transform =
     !visible ? `translate3d(0,${y}px,0)` : transformDone ? 'none' : 'translate3d(0,0,0)'
 
+  const motionEase = 'var(--motion-ease)'
+  const style = transformDone
+    ? {
+        opacity: visible ? 1 : 0,
+        transform,
+        transitionProperty: 'opacity' as const,
+        transitionDuration: '540ms',
+        transitionTimingFunction: motionEase,
+        transitionDelay: `${delayMs}ms`,
+      }
+    : {
+        opacity: visible ? 1 : 0,
+        transform,
+        transitionProperty: 'opacity, transform' as const,
+        transitionDuration: '540ms, 540ms',
+        transitionTimingFunction: `${motionEase}, ${motionEase}`,
+        transitionDelay: `${delayMs}ms, ${delayMs}ms`,
+      }
+
   return (
     <div
       ref={rootRef}
       className={cn(!transformDone && visible ? 'will-change-transform' : undefined, className)}
       onTransitionEnd={onTransitionEnd}
-      style={{
-        opacity: visible ? 1 : 0,
-        transform,
-        transition: transformDone
-          ? 'opacity 540ms var(--motion-ease)'
-          : `opacity 540ms var(--motion-ease), transform 540ms var(--motion-ease)`,
-        transitionDelay: `${delayMs}ms`,
-      }}
+      style={style}
     >
       {children}
     </div>

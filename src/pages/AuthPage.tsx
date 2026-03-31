@@ -18,6 +18,7 @@ import { PremiumHighlight } from '../components/access/PremiumHighlight'
 import { PricingCards } from '../components/access/PricingCards'
 import { LimitReachedCard } from '../components/access/LimitReachedCard'
 import { AdminOtpCard } from '../components/access/AdminOtpCard'
+import { LandingHeroDemoCarousel } from '../components/access/LandingHeroDemoCarousel'
 import { Modal } from '../components/ui/Modal'
 import { AmbientBackground } from '../components/ui/AmbientBackground'
 import { SectionReveal } from '../components/ui/SectionReveal'
@@ -39,11 +40,9 @@ import {
 import { verifyAdminOtpCode } from '../services/adminOtpService'
 import { Fig3DBrandMark } from '../components/brand/Fig3DBrandMark'
 import { resolveBrandingLogoUrl, useBrandingStore } from '../store/brandingStore'
-import { cn } from '../lib/utils'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const LANDING_DEMO_CIRCLE_COUNT = 4
-const LANDING_HERO_DEMO_ROTATE_MS = 5000
 
 function LegacyAuthCard() {
   const { user } = useAuth()
@@ -166,26 +165,6 @@ export function AuthPage() {
     brandingConfig.demoModel4Url,
     splashLogoUrl,
   ])
-
-  const [landingHeroDemoIndex, setLandingHeroDemoIndex] = useState(0)
-
-  useEffect(() => {
-    setLandingHeroDemoIndex(0)
-  }, [circleDemoSources])
-
-  useEffect(() => {
-    if (adminPending) return
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return
-    }
-    const id = window.setInterval(() => {
-      setLandingHeroDemoIndex((i) => (i + 1) % LANDING_DEMO_CIRCLE_COUNT)
-    }, LANDING_HERO_DEMO_ROTATE_MS)
-    return () => window.clearInterval(id)
-  }, [adminPending])
-
-  const landingHeroDemoUrl = circleDemoSources[landingHeroDemoIndex] ?? splashLogoUrl
-  const landingHeroDemoAlt = `Demonstração ${landingHeroDemoIndex + 1} — GIF 3D Fig3D`
 
   useEffect(() => {
     if (shouldForcePaywall) {
@@ -331,36 +310,10 @@ export function AuthPage() {
             </PremiumCard>
           </SectionReveal>
 
-          <SectionReveal delayMs={80}>
+          <div className="space-y-3">
+            {!adminPending ? <LandingHeroDemoCarousel sources={circleDemoSources} /> : null}
+            <SectionReveal delayMs={80}>
             <div className="space-y-3">
-            {!adminPending ? (
-              <div
-                role="region"
-                aria-label="Demonstrações GIF 3D alternando entre quatro modelos"
-                className="rounded-2xl border border-[rgba(139,92,255,0.22)] bg-[radial-gradient(120%_80%_at_50%_20%,rgba(109,75,255,0.12),rgba(8,9,12,0.92))] p-2 shadow-[var(--shadow-panel)] sm:p-3"
-              >
-                <img
-                  key={landingHeroDemoUrl}
-                  src={landingHeroDemoUrl}
-                  alt={landingHeroDemoAlt}
-                  className="mx-auto h-[min(52vw,300px)] w-full max-w-full object-contain sm:h-[min(44vw,320px)] lg:h-[360px]"
-                  loading="eager"
-                  decoding="sync"
-                />
-                <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
-                  {circleDemoSources.map((_, i) => (
-                    <span
-                      key={`hero-demo-dot-${i}`}
-                      className={cn(
-                        'h-1.5 w-1.5 rounded-full transition-colors duration-300',
-                        i === landingHeroDemoIndex ? 'bg-violet-300' : 'bg-[rgba(255,255,255,0.22)]',
-                      )}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-
             {adminPending ? (
               <AdminOtpCard
                 email={state?.email ?? ''}
@@ -409,7 +362,8 @@ export function AuthPage() {
               </div>
             ) : null}
             </div>
-          </SectionReveal>
+            </SectionReveal>
+          </div>
         </div>
 
         {!adminPending ? (
