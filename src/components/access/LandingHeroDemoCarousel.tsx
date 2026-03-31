@@ -44,8 +44,8 @@ export function LandingHeroDemoCarousel({ sources }: LandingHeroDemoCarouselProp
         src={url}
         alt={`Demonstração ${index + 1} — GIF 3D Fig3D`}
         className="mx-auto h-[min(52vw,300px)] w-full max-w-full object-contain sm:h-[min(44vw,320px)] lg:h-[360px]"
-        loading="eager"
-        decoding="sync"
+        loading="lazy"
+        decoding="async"
       />
       <div className="mt-2 flex justify-center gap-1.5" aria-hidden="true">
         {slides.map((_, i) => (

@@ -979,3 +979,5 @@ export function EditorPage() {
     </div>
   )
 }
+
+export default EditorPage

@@ -24,7 +24,9 @@ export function BrandingRuntime() {
   }, [])
 
   useEffect(() => {
-    upsertHeadLink('icon', faviconUrl, 'image/png')
+    const lower = faviconUrl.trim().toLowerCase()
+    const iconType = lower.endsWith('.svg') || lower.includes('.svg?') ? 'image/svg+xml' : 'image/png'
+    upsertHeadLink('icon', faviconUrl, iconType)
     upsertHeadLink('apple-touch-icon', faviconUrl)
   }, [faviconUrl])
 

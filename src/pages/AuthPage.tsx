@@ -298,7 +298,7 @@ export function AuthPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-100">Abertura / Splash Preview</p>
                 <div className="mt-2 flex items-center gap-3 rounded-xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.03)] p-2">
                   <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-[rgba(245,196,0,0.25)] bg-[radial-gradient(48px_34px_at_50%_14%,rgba(245,196,0,0.22),rgba(9,10,14,0.9))] shadow-[0_0_14px_rgba(109,75,255,0.25)]">
-                    <img src={splashLogoUrl} alt="Logo de abertura Fig3D" className="h-full w-full object-contain p-1" loading="eager" decoding="sync" />
+                    <img src={splashLogoUrl} alt="Logo de abertura Fig3D" className="h-full w-full object-contain p-1" loading="eager" decoding="async" />
                     <span className="pointer-events-none absolute inset-0 rounded-xl bg-[radial-gradient(60%_40%_at_50%_0%,rgba(255,255,255,0.2),transparent_65%)]" />
                   </div>
                   <div className="space-y-1">
