@@ -1,5 +1,18 @@
 import { useMemo, useRef, useState } from 'react'
-import { CheckCircle2, ChevronDown, ChevronUp, ImagePlus, LogOut, MoveDown, MoveUp, RefreshCcw, Star, Trash2, Upload } from 'lucide-react'
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  FileDown,
+  ImagePlus,
+  LogOut,
+  MoveDown,
+  MoveUp,
+  RefreshCcw,
+  Star,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '../ui/Button'
@@ -7,7 +20,14 @@ import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Badge } from '../ui/Badge'
 import { cn } from '../../lib/utils'
-import { resolveBrandingLogoUrl, useBrandingStore, type AppBrandingConfig, type BrandingDemoAsset } from '../../store/brandingStore'
+import {
+  getBrandingConfigSnapshot,
+  resolveBrandingLogoUrl,
+  sanitizeBrandingConfig,
+  useBrandingStore,
+  type AppBrandingConfig,
+  type BrandingDemoAsset,
+} from '../../store/brandingStore'
 import { clearAccessGateState } from '../../services/accessGateService'
 
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif']
@@ -255,6 +275,23 @@ export function BrandingAssetsPanel() {
     navigate('/auth', { replace: true })
   }
 
+  const downloadPublicBrandingJson = () => {
+    const snapshot = getBrandingConfigSnapshot()
+    const forDeploy = sanitizeBrandingConfig(snapshot, { strictRemoteUrls: true })
+    const json = JSON.stringify(forDeploy, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = 'branding.public.json'
+    anchor.click()
+    URL.revokeObjectURL(url)
+    toast.success('Gerado branding.public.json para o deploy publico.')
+    toast.message('Coloque o arquivo em public/ antes do build ou em dist/ na VPS. GIFs de demo precisam de URL HTTPS publica (nao data:/blob:).', {
+      duration: 8000,
+    })
+  }
+
   return (
     <Card className="rounded-2xl border-[rgba(249,115,22,0.35)] bg-[linear-gradient(180deg,rgba(31,23,16,0.56),rgba(16,16,19,0.9))] p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -262,11 +299,15 @@ export function BrandingAssetsPanel() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary-2)]">Painel administrativo</p>
           <h2 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">Identidade do App / Branding & Assets</h2>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
-            Gerencie logo principal, favicon, splash e assets de demonstracao da landing sem mexer no core.
+            Gerencie logo principal, favicon, splash e assets de demonstracao da landing sem mexer no core. Na VPS, visitantes nao veem o que esta so no seu navegador: use &quot;JSON para VPS&quot; e o arquivo branding.public.json no servidor.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="highlight">{config.published ? 'Publicado' : 'Rascunho'}</Badge>
+          <Button size="sm" variant="secondary" onClick={downloadPublicBrandingJson} title="Para visitantes na VPS (sem seu localStorage)">
+            <FileDown size={14} />
+            JSON para VPS
+          </Button>
           <Button size="sm" variant="secondary" onClick={handleAdminLogout}>
             <LogOut size={14} />
             Sair do ADM
@@ -449,7 +490,8 @@ export function BrandingAssetsPanel() {
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Arquivos de demonstracao</h3>
                 <p className="mt-1 text-xs text-[var(--text-muted)]">
-                  {publishedAssetsCount} publicado(s) • {config.marketingDemoAssets.length} no total
+                  {publishedAssetsCount} publicado(s) • {config.marketingDemoAssets.length} no total. O item em Destaque e
+                  Publicado aparece primeiro no carrossel da pagina publica (junto aos 4 slots do circulo).
                 </p>
               </div>
               <div className="flex items-center gap-2">

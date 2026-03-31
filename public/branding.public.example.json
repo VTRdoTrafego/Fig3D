@@ -1,0 +1,31 @@
+{
+  "about": "Renomeie para branding.public.json na pasta public/ antes do build, ou copie para dist/ apos npm run build. URLs de imagem e GIF devem ser HTTPS publicas (ex.: Supabase Storage), nao data: nem blob:.",
+  "appName": "FIG3D",
+  "appTagline": "Sua logo em 3D em segundos, sem precisar pagar pros outros.",
+  "shortDescription": "Transforme sua logo em GIF 3D em segundos.",
+  "marketingDescription": "Com o Fig3D, voce cria logo animada com poucos cliques, visual profissional e autonomia total.",
+  "primaryLogoUrl": "/fig3d-logo.png",
+  "faviconUrl": "/fig3d-logo.png",
+  "splashLogoUrl": "/fig3d-logo.png",
+  "headerLogoUrl": "/fig3d-logo.png",
+  "demoModel1Url": null,
+  "demoModel2Url": null,
+  "demoModel3Url": null,
+  "demoModel4Url": null,
+  "marketingDemoAssets": [
+    {
+      "id": "demo-principal",
+      "name": "Demonstracao principal",
+      "url": "/fig3d-logo.png",
+      "featured": true,
+      "published": true,
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "useLogoAsFavicon": true,
+  "useLogoInSplash": true,
+  "useLogoInHeader": true,
+  "useLogoInPublicPages": true,
+  "accentColor": "#F5C400",
+  "published": true
+}

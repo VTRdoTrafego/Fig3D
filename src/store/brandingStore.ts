@@ -90,14 +90,33 @@ export const defaultBrandingConfig: AppBrandingConfig = {
   updatedAt: nowIso(),
 }
 
-function sanitizeDemoAssets(input: unknown) {
+export interface SanitizeBrandingOptions {
+  /**
+   * Ao carregar JSON publico (VPS): remove data:/blob: e, em producao, URLs localhost —
+   * visitantes nunca veem assets que existem so no seu navegador.
+   */
+  strictRemoteUrls?: boolean
+}
+
+function normalizeBrandUrl(value: unknown, strictRemote: boolean): string | null {
+  if (typeof value !== 'string' || !value.trim()) return null
+  const t = value.trim()
+  if (t.startsWith('blob:')) return null
+  if (strictRemote) {
+    if (t.startsWith('data:')) return null
+    if (import.meta.env.PROD && /^https?:\/\/(localhost|127\.0\.0\.1)\b/i.test(t)) return null
+  }
+  return t
+}
+
+function sanitizeDemoAssets(input: unknown, strictRemote = false) {
   if (!Array.isArray(input)) return defaultBrandingConfig.marketingDemoAssets
   const normalized = input
     .filter((asset): asset is Partial<BrandingDemoAsset> => Boolean(asset && typeof asset === 'object'))
     .map((asset) => ({
       id: typeof asset.id === 'string' && asset.id ? asset.id : randomId(),
       name: typeof asset.name === 'string' && asset.name.trim() ? asset.name.trim() : 'Demo',
-      url: typeof asset.url === 'string' && asset.url ? asset.url : BRANDING_FALLBACK_LOGO,
+      url: normalizeBrandUrl(asset.url, strictRemote) ?? BRANDING_FALLBACK_LOGO,
       featured: Boolean(asset.featured),
       published: asset.published !== false,
       createdAt: typeof asset.createdAt === 'string' && asset.createdAt ? asset.createdAt : nowIso(),
@@ -109,7 +128,11 @@ function sanitizeDemoAssets(input: unknown) {
   return normalized
 }
 
-function sanitizeBrandingConfig(input: Partial<AppBrandingConfig> | null | undefined): AppBrandingConfig {
+export function sanitizeBrandingConfig(
+  input: Partial<AppBrandingConfig> | null | undefined,
+  options?: SanitizeBrandingOptions,
+): AppBrandingConfig {
+  const strict = options?.strictRemoteUrls === true
   const merged = {
     ...defaultBrandingConfig,
     ...(input ?? {}),
@@ -129,21 +152,15 @@ function sanitizeBrandingConfig(input: Partial<AppBrandingConfig> | null | undef
         ? merged.marketingDescription.trim()
         : defaultBrandingConfig.marketingDescription,
     primaryLogoUrl:
-      typeof merged.primaryLogoUrl === 'string' && merged.primaryLogoUrl ? merged.primaryLogoUrl : defaultBrandingConfig.primaryLogoUrl,
-    faviconUrl: typeof merged.faviconUrl === 'string' && merged.faviconUrl ? merged.faviconUrl : defaultBrandingConfig.faviconUrl,
-    splashLogoUrl:
-      typeof merged.splashLogoUrl === 'string' && merged.splashLogoUrl ? merged.splashLogoUrl : defaultBrandingConfig.splashLogoUrl,
-    headerLogoUrl:
-      typeof merged.headerLogoUrl === 'string' && merged.headerLogoUrl ? merged.headerLogoUrl : defaultBrandingConfig.headerLogoUrl,
-    demoModel1Url:
-      typeof merged.demoModel1Url === 'string' && merged.demoModel1Url.trim() ? merged.demoModel1Url.trim() : null,
-    demoModel2Url:
-      typeof merged.demoModel2Url === 'string' && merged.demoModel2Url.trim() ? merged.demoModel2Url.trim() : null,
-    demoModel3Url:
-      typeof merged.demoModel3Url === 'string' && merged.demoModel3Url.trim() ? merged.demoModel3Url.trim() : null,
-    demoModel4Url:
-      typeof merged.demoModel4Url === 'string' && merged.demoModel4Url.trim() ? merged.demoModel4Url.trim() : null,
-    marketingDemoAssets: sanitizeDemoAssets(merged.marketingDemoAssets),
+      normalizeBrandUrl(merged.primaryLogoUrl, strict) ?? defaultBrandingConfig.primaryLogoUrl,
+    faviconUrl: normalizeBrandUrl(merged.faviconUrl, strict) ?? defaultBrandingConfig.faviconUrl,
+    splashLogoUrl: normalizeBrandUrl(merged.splashLogoUrl, strict) ?? defaultBrandingConfig.splashLogoUrl,
+    headerLogoUrl: normalizeBrandUrl(merged.headerLogoUrl, strict) ?? defaultBrandingConfig.headerLogoUrl,
+    demoModel1Url: normalizeBrandUrl(merged.demoModel1Url, strict),
+    demoModel2Url: normalizeBrandUrl(merged.demoModel2Url, strict),
+    demoModel3Url: normalizeBrandUrl(merged.demoModel3Url, strict),
+    demoModel4Url: normalizeBrandUrl(merged.demoModel4Url, strict),
+    marketingDemoAssets: sanitizeDemoAssets(merged.marketingDemoAssets, strict),
     useLogoAsFavicon: Boolean(merged.useLogoAsFavicon),
     useLogoInSplash: Boolean(merged.useLogoInSplash),
     useLogoInHeader: Boolean(merged.useLogoInHeader),
@@ -235,4 +252,35 @@ export const useBrandingStore = create<BrandingState>((set) => ({
 
 export function getBrandingConfigSnapshot() {
   return useBrandingStore.getState().config
+}
+
+/**
+ * Visitantes na VPS nao tem localStorage do admin: carrega `branding.public.json` na mesma origem
+ * (ou URL em VITE_PUBLIC_BRANDING_URL). Nao persiste em localStorage para atualizar a cada visita.
+ */
+export async function bootstrapPublicBranding(): Promise<void> {
+  if (typeof window === 'undefined') return
+  if (window.localStorage.getItem(BRANDING_STORAGE_KEY)) return
+
+  const envUrl =
+    typeof import.meta.env.VITE_PUBLIC_BRANDING_URL === 'string' ? import.meta.env.VITE_PUBLIC_BRANDING_URL.trim() : ''
+
+  let fetchUrl: string
+  if (envUrl && /^https?:\/\//i.test(envUrl)) {
+    fetchUrl = envUrl
+  } else {
+    const root = new URL(import.meta.env.BASE_URL || '/', window.location.origin).href
+    const path = envUrl && !/^https?:\/\//i.test(envUrl) ? envUrl.replace(/^\//, '') : 'branding.public.json'
+    fetchUrl = new URL(path, root).href
+  }
+
+  try {
+    const res = await fetch(fetchUrl, { cache: 'no-store', credentials: 'omit' })
+    if (!res.ok) return
+    const data = (await res.json()) as Partial<AppBrandingConfig>
+    const next = withUpdatedAt(sanitizeBrandingConfig(data, { strictRemoteUrls: true }))
+    useBrandingStore.setState({ config: next })
+  } catch {
+    /* rede, 404 ou JSON invalido: mantem default do create() */
+  }
 }

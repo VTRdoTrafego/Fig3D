@@ -157,12 +157,30 @@ export function AuthPage() {
       brandingConfig.demoModel3Url,
       brandingConfig.demoModel4Url,
     ]
-    return Array.from({ length: LANDING_DEMO_CIRCLE_COUNT }, (_, index) => perSlot[index] || splashLogoUrl)
+    const baseSlots = Array.from({ length: LANDING_DEMO_CIRCLE_COUNT }, (_, index) => perSlot[index] || splashLogoUrl)
+
+    const featured = brandingConfig.marketingDemoAssets.find(
+      (asset) => asset.featured && asset.published && typeof asset.url === 'string' && asset.url.trim().length > 0,
+    )
+    if (!featured?.url) return baseSlots
+
+    const ordered: string[] = []
+    const seen = new Set<string>()
+    const push = (url: string) => {
+      if (!url || seen.has(url)) return
+      seen.add(url)
+      ordered.push(url)
+    }
+    push(featured.url)
+    for (const url of baseSlots) push(url)
+    while (ordered.length < LANDING_DEMO_CIRCLE_COUNT) push(splashLogoUrl)
+    return ordered.slice(0, LANDING_DEMO_CIRCLE_COUNT)
   }, [
     brandingConfig.demoModel1Url,
     brandingConfig.demoModel2Url,
     brandingConfig.demoModel3Url,
     brandingConfig.demoModel4Url,
+    brandingConfig.marketingDemoAssets,
     splashLogoUrl,
   ])
 
