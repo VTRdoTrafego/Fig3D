@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+﻿import { Sparkles } from 'lucide-react'
 import { TrialBadge } from './TrialBadge'
 import { Fig3DBrandMark } from '../brand/Fig3DBrandMark'
 import { AnimatedCounter } from '../ui/AnimatedCounter'
@@ -42,7 +42,7 @@ export function AccessHero({ title, subtitle }: AccessHeroProps) {
           <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">Testes gratis</p>
         </div>
         <div className="rounded-xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.02)] px-2 py-2 text-center">
-          <AnimatedCounter value={360} suffix="�" className="text-sm font-semibold text-[var(--text-primary)]" />
+          <AnimatedCounter value={360} suffix="°" className="text-sm font-semibold text-[var(--text-primary)]" />
           <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">Visual</p>
         </div>
         <div className="rounded-xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.02)] px-2 py-2 text-center">
@@ -53,4 +53,5 @@ export function AccessHero({ title, subtitle }: AccessHeroProps) {
     </section>
   )
 }
+
 

@@ -1,4 +1,4 @@
-import { Mail, LockKeyhole, ArrowRight } from 'lucide-react'
+﻿import { Mail, LockKeyhole, ArrowRight } from 'lucide-react'
 import { PremiumCard } from '../ui/PremiumCard'
 import { Input } from '../ui/Input'
 import { GlowButton } from '../ui/GlowButton'
@@ -71,3 +71,4 @@ export function EmailGateCard({
     </PremiumCard>
   )
 }
+

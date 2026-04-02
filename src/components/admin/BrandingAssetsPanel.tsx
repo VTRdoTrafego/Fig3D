@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+﻿import { useMemo, useRef, useState } from 'react'
 import {
   CheckCircle2,
   ChevronDown,
@@ -485,7 +485,7 @@ export function BrandingAssetsPanel() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Arquivos de demonstracao</h3>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">{publishedAssetsCount} publicado(s) � {config.marketingDemoAssets.length} no total. O item em Destaque e Publicado aparece primeiro no carrossel da pagina publica (junto aos 4 slots do circulo).</p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">{publishedAssetsCount} publicado(s) • {config.marketingDemoAssets.length} no total. O item em Destaque e Publicado aparece primeiro no carrossel da pagina publica (junto aos 4 slots do circulo).</p>
               </div>
               <div className="flex items-center gap-2">
                 <input ref={demoInputRef} type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" className="hidden" onChange={async (event) => { await addDemoAssets(event.target.files); event.currentTarget.value = '' }} />
@@ -545,3 +545,4 @@ export function BrandingAssetsPanel() {
     </Card>
   )
 }
+

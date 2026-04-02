@@ -1,4 +1,4 @@
-import { useEffect, useState, type ImgHTMLAttributes } from 'react'
+﻿import { useEffect, useState, type ImgHTMLAttributes } from 'react'
 import { isStoredBrandingAssetRef, loadBrandingAsset } from '../../services/brandingAssetStorage'
 
 interface AssetImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src'> {
@@ -50,3 +50,4 @@ export function AssetImage({ assetRef, alt = '', ...props }: AssetImageProps) {
   if (!resolvedUrl) return null
   return <img src={resolvedUrl} alt={alt} {...props} />
 }
+

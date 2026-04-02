@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { AssetImage } from '../brand/AssetImage'
 import { cn } from '../../lib/utils'
 
@@ -56,3 +56,4 @@ export function LandingHeroDemoCarousel({ sources }: LandingHeroDemoCarouselProp
     </div>
   )
 }
+

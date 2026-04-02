@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react'
+﻿import type { LucideIcon } from 'lucide-react'
 import { Zap, ShieldCheck, Smartphone, Wand2 } from 'lucide-react'
 import { PremiumCard } from '../ui/PremiumCard'
 import { SectionReveal } from '../ui/SectionReveal'
@@ -58,3 +58,4 @@ export function BenefitsGrid() {
     </section>
   )
 }
+

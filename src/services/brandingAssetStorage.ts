@@ -1,4 +1,4 @@
-const DB_NAME = 'fig3d-branding-assets'
+﻿const DB_NAME = 'fig3d-branding-assets'
 const STORE_NAME = 'assets'
 const ASSET_REF_PREFIX = 'idb://branding-asset/'
 
@@ -55,3 +55,4 @@ export async function loadBrandingAsset(ref: string) {
   db.close()
   return blob
 }
+
