@@ -166,8 +166,13 @@ export function AuthPage() {
     }
     push(featured.url)
     for (const url of baseSlots) push(url)
-    while (ordered.length < LANDING_DEMO_CIRCLE_COUNT) push(splashLogoUrl)
-    return ordered.slice(0, LANDING_DEMO_CIRCLE_COUNT)
+    if (!ordered.length) {
+      return baseSlots
+    }
+    return Array.from(
+      { length: LANDING_DEMO_CIRCLE_COUNT },
+      (_, index) => ordered[index] ?? ordered[index % ordered.length] ?? splashLogoUrl,
+    )
   }, [
     brandingConfig.demoModel1Url,
     brandingConfig.demoModel2Url,

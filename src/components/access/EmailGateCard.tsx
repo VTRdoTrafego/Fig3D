@@ -3,6 +3,7 @@ import { PremiumCard } from '../ui/PremiumCard'
 import { Input } from '../ui/Input'
 import { GlowButton } from '../ui/GlowButton'
 import { StatusBadge } from '../ui/StatusBadge'
+import { useBrandingStore } from '../../store/brandingStore'
 
 interface EmailGateCardProps {
   email: string
@@ -21,6 +22,11 @@ export function EmailGateCard({
   disabled = false,
   helperText = 'Teste gratis para transformar sua logo em GIF 3D sem complicacao.',
 }: EmailGateCardProps) {
+  const brandingConfig = useBrandingStore((state) => state.config)
+  const brandName = brandingConfig.appName || 'FIG3D'
+  const gateDescription =
+    brandingConfig.marketingDescription || 'Transforme sua logo em GIF 3D com poucos cliques e visual profissional.'
+
   return (
     <PremiumCard
       className="space-y-4 border-[rgba(139,92,255,0.35)] bg-[linear-gradient(180deg,rgba(26,29,42,0.94),rgba(17,19,30,0.94))] p-4 sm:p-5"
@@ -28,12 +34,10 @@ export function EmailGateCard({
       <div className="space-y-1.5">
         <p className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-yellow)]">
           <LockKeyhole size={12} />
-          Acesso Fig3D
+          Acesso {brandName}
         </p>
-        <StatusBadge tone="live">Sessão protegida</StatusBadge>
-        <p className="text-sm text-[var(--text-secondary)]">
-          Transforme sua logo em GIF 3D com poucos cliques e visual profissional.
-        </p>
+        <StatusBadge tone="live">Sessao protegida</StatusBadge>
+        <p className="text-sm text-[var(--text-secondary)]">{gateDescription}</p>
       </div>
 
       <label className="block">
@@ -59,7 +63,7 @@ export function EmailGateCard({
         disabled={disabled || loading}
         onClick={onSubmit}
       >
-        {loading ? 'Liberando acesso...' : 'Quero criar minha logo em GIF 3D'}
+        {loading ? 'Liberando acesso...' : `Quero entrar no ${brandName}`}
         {!loading ? <ArrowRight size={15} /> : null}
       </GlowButton>
 

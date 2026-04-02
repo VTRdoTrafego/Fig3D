@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Zap, ShieldCheck, Smartphone, Wand2 } from 'lucide-react'
 import { PremiumCard } from '../ui/PremiumCard'
 import { SectionReveal } from '../ui/SectionReveal'
+import { useBrandingStore } from '../../store/brandingStore'
 
 interface BenefitItem {
   title: string
@@ -33,14 +34,16 @@ const BENEFITS: BenefitItem[] = [
 ]
 
 export function BenefitsGrid() {
+  const brandName = useBrandingStore((state) => state.config.appName || 'FIG3D')
+
   return (
     <section className="space-y-3">
-      <h2 className="text-base font-semibold text-[var(--text-primary)] sm:text-lg">Por que escolher o Fig3D</h2>
+      <h2 className="text-base font-semibold text-[var(--text-primary)] sm:text-lg">Por que escolher o {brandName}</h2>
       <div className="grid gap-2.5 sm:grid-cols-2">
-        {BENEFITS.map((item) => {
+        {BENEFITS.map((item, index) => {
           const Icon = item.icon
           return (
-            <SectionReveal key={item.title} delayMs={BENEFITS.indexOf(item) * 70}>
+            <SectionReveal key={item.title} delayMs={index * 70}>
               <PremiumCard className="rounded-2xl p-3.5">
                 <p className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-[rgba(139,92,255,0.35)] bg-[rgba(109,75,255,0.14)] text-violet-100 shadow-[0_0_8px_rgba(109,75,255,0.25)]">
                   <Icon size={15} />

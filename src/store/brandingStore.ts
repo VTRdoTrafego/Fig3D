@@ -21,7 +21,6 @@ export interface AppBrandingConfig {
   faviconUrl: string | null
   splashLogoUrl: string | null
   headerLogoUrl: string | null
-  /** GIF/imagem por slot nos 4 circulos da landing; vazio usa splash. */
   demoModel1Url: string | null
   demoModel2Url: string | null
   demoModel3Url: string | null
@@ -45,7 +44,7 @@ interface BrandingState {
 }
 
 const BRANDING_STORAGE_KEY = 'fig3d-branding-config-v1'
-/** Asset estático servido de public/ (evita 404 se PNG de marca nao existir no deploy). */
+const MAX_BRANDING_STORAGE_CHARS = 200_000
 const BRANDING_FALLBACK_LOGO = '/favicon.svg'
 
 function nowIso() {
@@ -93,10 +92,6 @@ export const defaultBrandingConfig: AppBrandingConfig = {
 }
 
 export interface SanitizeBrandingOptions {
-  /**
-   * Ao carregar JSON publico (VPS): remove data:/blob: e, em producao, URLs localhost —
-   * visitantes nunca veem assets que existem so no seu navegador.
-   */
   strictRemoteUrls?: boolean
 }
 
@@ -115,6 +110,7 @@ function sanitizeDemoAssets(input: unknown, strictRemote = false) {
   if (!Array.isArray(input)) return defaultBrandingConfig.marketingDemoAssets
   const normalized = input
     .filter((asset): asset is Partial<BrandingDemoAsset> => Boolean(asset && typeof asset === 'object'))
+    .slice(0, 12)
     .map((asset) => ({
       id: typeof asset.id === 'string' && asset.id ? asset.id : randomId(),
       name: typeof asset.name === 'string' && asset.name.trim() ? asset.name.trim() : 'Demo',
@@ -178,9 +174,14 @@ function readFromStorage() {
   if (typeof window === 'undefined') return defaultBrandingConfig
   const raw = window.localStorage.getItem(BRANDING_STORAGE_KEY)
   if (!raw) return defaultBrandingConfig
+  if (raw.length > MAX_BRANDING_STORAGE_CHARS) {
+    window.localStorage.removeItem(BRANDING_STORAGE_KEY)
+    return defaultBrandingConfig
+  }
   try {
     return sanitizeBrandingConfig(JSON.parse(raw) as Partial<AppBrandingConfig>)
   } catch {
+    window.localStorage.removeItem(BRANDING_STORAGE_KEY)
     return defaultBrandingConfig
   }
 }
@@ -260,12 +261,6 @@ function isNonEmptyRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) && Object.keys(value).length > 0
 }
 
-/**
- * Visitantes sem localStorage do admin:
- * 1) Tenta `branding.public.json` na origem (ou VITE_PUBLIC_BRANDING_URL).
- * 2) Se nao houver / vazio / erro, aplica `src/data/publicBranding.default.json` embutido no JS do deploy.
- * Assim basta enviar a pasta dist/; nao depende de arquivo JSON extra no servidor (opcional para sobrescrever).
- */
 export async function bootstrapPublicBranding(): Promise<void> {
   try {
     if (typeof window === 'undefined') return
@@ -295,7 +290,6 @@ export async function bootstrapPublicBranding(): Promise<void> {
         }
       }
     } catch {
-      /* rede ou JSON invalido */
     }
 
     if (!appliedRemote && isNonEmptyRecord(builtInPublicBranding)) {
@@ -305,6 +299,6 @@ export async function bootstrapPublicBranding(): Promise<void> {
       useBrandingStore.setState({ config: next })
     }
   } catch {
-    /* URL base invalida: mantem branding do create() */
   }
 }
+

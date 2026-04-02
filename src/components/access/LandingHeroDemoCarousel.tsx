@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { AssetImage } from '../brand/AssetImage'
 import { cn } from '../../lib/utils'
 
 const SLIDE_COUNT = 4
@@ -30,13 +31,13 @@ export function LandingHeroDemoCarousel({ sources }: LandingHeroDemoCarouselProp
   return (
     <div
       role="region"
-      aria-label="Demonstrações GIF 3D alternando entre quatro modelos"
+      aria-label="Demonstracoes GIF 3D alternando entre quatro modelos"
       className="rounded-2xl border border-[rgba(139,92,255,0.22)] bg-[radial-gradient(120%_80%_at_50%_20%,rgba(109,75,255,0.12),rgba(8,9,12,0.92))] p-2 shadow-[var(--shadow-panel)] sm:p-3"
     >
-      <img
+      <AssetImage
         key={index}
-        src={url}
-        alt={`Demonstração ${index + 1} — GIF 3D Fig3D`}
+        assetRef={url}
+        alt={`Demonstracao ${index + 1} - GIF 3D Fig3D`}
         className="mx-auto h-[min(52vw,300px)] w-full max-w-full object-contain sm:h-[min(44vw,320px)] lg:h-[360px]"
         loading="lazy"
         decoding="async"

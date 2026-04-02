@@ -39,9 +39,14 @@ export function useLogoTexture(logo: LogoSettings) {
     let cancelled = false
     const image = new Image()
     image.crossOrigin = 'anonymous'
-    image.src = logo.path
+    const loadTimeout = window.setTimeout(() => {
+      if (cancelled) return
+      setTexture(null)
+      setError('Tempo esgotado ao carregar a logo.')
+    }, 8000)
 
     image.onload = () => {
+      window.clearTimeout(loadTimeout)
       if (cancelled) return
       const width = Math.max(1, image.naturalWidth || image.width || 1)
       const height = Math.max(1, image.naturalHeight || image.height || 1)
@@ -73,7 +78,6 @@ export function useLogoTexture(logo: LogoSettings) {
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = 'high'
       ctx.clearRect(0, 0, bounds.width, bounds.height)
-      // Crop transparent margins so front colors match extruded bounds 1:1.
       ctx.drawImage(
         sourceCanvas,
         bounds.x,
@@ -105,13 +109,18 @@ export function useLogoTexture(logo: LogoSettings) {
     }
 
     image.onerror = () => {
+      window.clearTimeout(loadTimeout)
       if (!cancelled) {
-        setError('Arquivo de imagem inválido.')
+        setError('Arquivo de imagem invalido.')
+        setTexture(null)
       }
     }
 
+    image.src = logo.path
+
     return () => {
       cancelled = true
+      window.clearTimeout(loadTimeout)
     }
   }, [logo.path])
 

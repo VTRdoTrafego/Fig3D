@@ -15,6 +15,33 @@ function isSvgPath(path: string) {
   return /\.svg($|\?)/i.test(path) || path.includes('image/svg')
 }
 
+function waitForImageLoad(image: HTMLImageElement, src: string) {
+  return new Promise<void>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      cleanup()
+      reject(new Error('image-load-timeout'))
+    }, 8000)
+
+    const cleanup = () => {
+      window.clearTimeout(timeoutId)
+      image.onload = null
+      image.onerror = null
+    }
+
+    image.onload = () => {
+      cleanup()
+      resolve()
+    }
+
+    image.onerror = () => {
+      cleanup()
+      reject(new Error('image-load-failed'))
+    }
+
+    image.src = src
+  })
+}
+
 export function useLogoGeometry(config: EditorConfig): Result {
   const [shapes, setShapes] = useState<THREE.Shape[]>([])
   const [warning, setWarning] = useState<string | null>(null)
@@ -41,15 +68,14 @@ export function useLogoGeometry(config: EditorConfig): Result {
           data.paths.forEach((path) => {
             nextShapes.push(...SVGLoader.createShapes(path))
           })
-          setWarning(nextShapes.length ? null : 'SVG sem paths válidos.')
+          setWarning(nextShapes.length ? null : 'SVG sem paths validos.')
           setShapes(nextShapes)
           return
         }
 
         const image = new Image()
         image.crossOrigin = 'anonymous'
-        image.src = logoPath
-        await image.decode()
+        await waitForImageLoad(image, logoPath)
         if (cancelled) return
 
         const naturalWidth = Math.max(1, image.naturalWidth || image.width || 1)
@@ -75,9 +101,9 @@ export function useLogoGeometry(config: EditorConfig): Result {
         const traced = traceAlphaToShapes({ imageData: data, width, height, threshold: 0.32 })
         if (cancelled) return
         if (!traced.shapes.length) {
-          setWarning('Não foi possível extrudar essa imagem. Use PNG/SVG com transparência clara.')
+          setWarning('Nao foi possivel extrudar essa imagem. Use PNG/SVG com transparencia clara.')
         } else if (traced.complexityScore > 3200) {
-          setWarning('Logo complexa detectada: pode exigir simplificação para melhor performance.')
+          setWarning('Logo complexa detectada: pode exigir simplificacao para melhor performance.')
         } else {
           setWarning(null)
         }
