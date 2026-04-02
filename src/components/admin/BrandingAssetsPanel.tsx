@@ -1,15 +1,11 @@
-﻿import { useMemo, useRef, useState } from 'react'
+﻿import { useRef, useState } from 'react'
 import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   FileDown,
-  ImagePlus,
   LogOut,
-  MoveDown,
-  MoveUp,
   RefreshCcw,
-  Star,
   Trash2,
   Upload,
 } from 'lucide-react'
@@ -20,14 +16,12 @@ import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Badge } from '../ui/Badge'
 import { AssetImage } from '../brand/AssetImage'
-import { cn } from '../../lib/utils'
 import {
   getBrandingConfigSnapshot,
   resolveBrandingLogoUrl,
   sanitizeBrandingConfig,
   useBrandingStore,
   type AppBrandingConfig,
-  type BrandingDemoAsset,
 } from '../../store/brandingStore'
 import { clearAccessGateState } from '../../services/accessGateService'
 import {
@@ -128,13 +122,6 @@ function ensureValidImage(file: File) {
   }
 }
 
-function randomId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
-  }
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`
-}
-
 interface UploadTileProps {
   label: string
   hint: string
@@ -190,15 +177,6 @@ function UploadTile({ label, hint, previewUrl, onUpload, onRemove, disabled = fa
   )
 }
 
-function mergeDemoAssetUpdate(assets: BrandingDemoAsset[], updated: BrandingDemoAsset[]) {
-  if (!updated.length) return assets
-  const all = [...assets, ...updated]
-  if (!all.some((asset) => asset.featured)) {
-    all[0] = { ...all[0], featured: true }
-  }
-  return all
-}
-
 export function BrandingAssetsPanel() {
   const navigate = useNavigate()
   const config = useBrandingStore((state) => state.config)
@@ -206,17 +184,6 @@ export function BrandingAssetsPanel() {
   const resetConfig = useBrandingStore((state) => state.resetConfig)
   const [expanded, setExpanded] = useState(true)
   const [savingField, setSavingField] = useState<string | null>(null)
-  const demoInputRef = useRef<HTMLInputElement | null>(null)
-
-  const publishedAssetsCount = useMemo(
-    () => config.marketingDemoAssets.filter((asset) => asset.published).length,
-    [config.marketingDemoAssets],
-  )
-
-  const featuredAsset = useMemo(
-    () => config.marketingDemoAssets.find((asset) => asset.featured) ?? config.marketingDemoAssets[0] ?? null,
-    [config.marketingDemoAssets],
-  )
 
   const patchTextField = (field: keyof Pick<AppBrandingConfig, 'appName' | 'appTagline' | 'shortDescription' | 'marketingDescription' | 'accentColor'>, value: string) => {
     setConfigPatch({ [field]: value })
@@ -277,71 +244,6 @@ export function BrandingAssetsPanel() {
     }
   }
 
-  const addDemoAssets = async (files: FileList | null) => {
-    if (!files?.length) return
-    setSavingField('marketingDemoAssets')
-    try {
-      const assets: BrandingDemoAsset[] = []
-      for (const file of Array.from(files)) {
-        ensureValidImage(file)
-        const assetRef = await fileToStoredAssetRef(file)
-        assets.push({
-          id: randomId(),
-          name: file.name,
-          url: assetRef,
-          featured: false,
-          published: true,
-          createdAt: new Date().toISOString(),
-        })
-      }
-      const nextAssets = mergeDemoAssetUpdate(config.marketingDemoAssets, assets)
-      setConfigPatch({ marketingDemoAssets: nextAssets })
-      toast.success('Assets de demonstracao enviados.')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Falha ao enviar assets.')
-    } finally {
-      setSavingField(null)
-    }
-  }
-
-  const removeDemoAsset = (assetId: string) => {
-    const current = config.marketingDemoAssets
-    const next = current.filter((asset) => asset.id !== assetId)
-    if (!next.length) {
-      setConfigPatch({ marketingDemoAssets: [] })
-      return
-    }
-    if (!next.some((asset) => asset.featured)) {
-      next[0] = { ...next[0], featured: true }
-    }
-    setConfigPatch({ marketingDemoAssets: next })
-  }
-
-  const setFeaturedAsset = (assetId: string) => {
-    setConfigPatch({
-      marketingDemoAssets: config.marketingDemoAssets.map((asset) => ({
-        ...asset,
-        featured: asset.id === assetId,
-      })),
-    })
-  }
-
-  const toggleAssetPublished = (assetId: string, published: boolean) => {
-    setConfigPatch({
-      marketingDemoAssets: config.marketingDemoAssets.map((asset) =>
-        asset.id === assetId ? { ...asset, published } : asset,
-      ),
-    })
-  }
-
-  const moveAsset = (from: number, to: number) => {
-    if (to < 0 || to >= config.marketingDemoAssets.length) return
-    const next = [...config.marketingDemoAssets]
-    const [item] = next.splice(from, 1)
-    next.splice(to, 0, item)
-    setConfigPatch({ marketingDemoAssets: next })
-  }
-
   const faviconPreview = resolveBrandingLogoUrl(config, 'favicon')
   const headerPreview = resolveBrandingLogoUrl(config, 'header')
   const splashPreview = resolveBrandingLogoUrl(config, 'splash')
@@ -366,12 +268,7 @@ export function BrandingAssetsPanel() {
         demoModel2Url: await resolveAssetRefForExport(snapshot.demoModel2Url),
         demoModel3Url: await resolveAssetRefForExport(snapshot.demoModel3Url),
         demoModel4Url: await resolveAssetRefForExport(snapshot.demoModel4Url),
-        marketingDemoAssets: await Promise.all(
-          snapshot.marketingDemoAssets.map(async (asset) => ({
-            ...asset,
-            url: (await resolveAssetRefForExport(asset.url)) ?? '',
-          })),
-        ),
+        marketingDemoAssets: [],
       }
       const json = JSON.stringify(forDeploy, null, 2)
       const blob = new Blob([json], { type: 'application/json' })
@@ -398,7 +295,7 @@ export function BrandingAssetsPanel() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary-2)]">Painel administrativo</p>
           <h2 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">Identidade do App / Branding & Assets</h2>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">
-            Gerencie logo principal, favicon, splash e assets de demonstracao da landing sem mexer no core. Para visitantes na VPS: exporte JSON e copie o conteudo para src/data/publicBranding.default.json antes do build (vai no bundle), ou publique branding.public.json junto do site.
+            Gerencie logo principal, favicon, splash e assets essenciais sem mexer no core. Para visitantes na VPS: exporte JSON e publique branding.public.json junto do site.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -453,7 +350,7 @@ export function BrandingAssetsPanel() {
 
           <section className="space-y-3">
             <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Modelos nos 4 circulos da landing</h3>
-            <p className="text-xs text-[var(--text-muted)]">Um arquivo por circulo (ex.: cada formato/estilo do app). Sem upload, o circulo usa o GIF de <span className="text-[var(--text-secondary)]">Logo de abertura / splash</span>.</p>
+            <p className="text-xs text-[var(--text-muted)]">Um arquivo por circulo. Sem upload, o circulo usa o GIF de <span className="text-[var(--text-secondary)]">Logo de abertura / splash</span>.</p>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <UploadTile label="Circulo 1" hint="Primeiro tipo demonstrado na landing." previewUrl={config.demoModel1Url} onUpload={(file) => saveDemoModelAsset('demoModel1Url', file)} onRemove={() => setConfigPatch({ demoModel1Url: null })} disabled={savingField === 'demoModel1Url'} />
               <UploadTile label="Circulo 2" hint="Segundo tipo demonstrado na landing." previewUrl={config.demoModel2Url} onUpload={(file) => saveDemoModelAsset('demoModel2Url', file)} onRemove={() => setConfigPatch({ demoModel2Url: null })} disabled={savingField === 'demoModel2Url'} />
@@ -481,58 +378,6 @@ export function BrandingAssetsPanel() {
             </div>
           </section>
 
-          <section className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--text-secondary)]">Arquivos de demonstracao</h3>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">{publishedAssetsCount} publicado(s) • {config.marketingDemoAssets.length} no total. O item em Destaque e Publicado aparece primeiro no carrossel da pagina publica (junto aos 4 slots do circulo).</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <input ref={demoInputRef} type="file" multiple accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" className="hidden" onChange={async (event) => { await addDemoAssets(event.target.files); event.currentTarget.value = '' }} />
-                <Button size="sm" variant="secondary" disabled={savingField === 'marketingDemoAssets'} onClick={() => demoInputRef.current?.click()}><ImagePlus size={14} />Enviar demonstracoes</Button>
-              </div>
-            </div>
-
-            {featuredAsset ? (
-              <Card className="rounded-2xl border-[rgba(245,196,0,0.3)] bg-[linear-gradient(180deg,rgba(245,196,0,0.08),rgba(255,255,255,0.03))] p-3">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-yellow)]">Destaque principal</p>
-                <div className="mt-2 grid gap-3 sm:grid-cols-[120px_1fr]">
-                  <div className="h-[88px] overflow-hidden rounded-xl border border-[var(--border-soft)] bg-[rgba(0,0,0,0.22)]"><AssetImage assetRef={featuredAsset.url} alt={featuredAsset.name} className="h-full w-full object-cover" loading="lazy" decoding="async" /></div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-[var(--text-primary)]">{featuredAsset.name}</p>
-                    <p className="text-xs text-[var(--text-secondary)]">Usado automaticamente no bloco de demonstracao da landing para reforco de conversao.</p>
-                    <Badge variant="highlight">{featuredAsset.published ? 'Publicado' : 'Nao publicado'}</Badge>
-                  </div>
-                </div>
-              </Card>
-            ) : (
-              <Card className="rounded-2xl border-[var(--border-soft)] bg-[rgba(255,255,255,0.03)] p-3"><p className="text-xs text-[var(--text-muted)]">Nenhum asset enviado. Use o botao de upload para adicionar demonstracoes.</p></Card>
-            )}
-
-            <div className="grid gap-2">
-              {config.marketingDemoAssets.map((asset, index) => (
-                <Card key={asset.id} className="rounded-2xl border-[var(--border-soft)] bg-[rgba(255,255,255,0.03)] p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="h-14 w-14 overflow-hidden rounded-lg border border-[var(--border-soft)] bg-[rgba(0,0,0,0.25)]"><AssetImage assetRef={asset.url} alt={asset.name} className="h-full w-full object-cover" loading="lazy" decoding="async" /></div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[var(--text-primary)]">{asset.name}</p>
-                      <p className="text-[11px] text-[var(--text-muted)]">Ordem {index + 1}</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => moveAsset(index, index - 1)} disabled={index === 0}><MoveUp size={13} /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => moveAsset(index, index + 1)} disabled={index === config.marketingDemoAssets.length - 1}><MoveDown size={13} /></Button>
-                      <Button size="sm" variant={asset.featured ? 'premium' : 'secondary'} onClick={() => setFeaturedAsset(asset.id)}><Star size={13} />{asset.featured ? 'Destaque' : 'Destacar'}</Button>
-                      <label className={cn('inline-flex items-center gap-1 rounded-xl border px-2 py-1 text-[11px]', asset.published ? 'border-[rgba(34,197,94,0.45)] bg-[rgba(34,197,94,0.14)] text-emerald-200' : 'border-[var(--border-soft)] bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)]')}>
-                        <input type="checkbox" checked={asset.published} onChange={(event) => toggleAssetPublished(asset.id, event.target.checked)} />Publicar
-                      </label>
-                      <Button size="sm" variant="ghost" onClick={() => removeDemoAsset(asset.id)}><Trash2 size={13} /></Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border-soft)] bg-[rgba(255,255,255,0.03)] p-3">
             <p className="text-xs text-[var(--text-secondary)]">Ultima atualizacao: {new Date(config.updatedAt).toLocaleString('pt-BR')}</p>
             <div className="flex items-center gap-2">
@@ -545,4 +390,3 @@ export function BrandingAssetsPanel() {
     </Card>
   )
 }
-

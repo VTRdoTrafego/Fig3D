@@ -67,7 +67,7 @@ const defaultDemoAsset: BrandingDemoAsset = {
   createdAt: nowIso(),
 }
 
-export const defaultBrandingConfig: AppBrandingConfig = {
+const baseDefaultBrandingConfig: AppBrandingConfig = {
   appName: 'FIG3D',
   appTagline: 'Sua logo em 3D em segundos, sem precisar pagar pros outros.',
   shortDescription: 'Transforme sua logo em GIF 3D em segundos.',
@@ -107,7 +107,7 @@ function normalizeBrandUrl(value: unknown, strictRemote: boolean): string | null
 }
 
 function sanitizeDemoAssets(input: unknown, strictRemote = false) {
-  if (!Array.isArray(input)) return defaultBrandingConfig.marketingDemoAssets
+  if (!Array.isArray(input)) return baseDefaultBrandingConfig.marketingDemoAssets
   const normalized = input
     .filter((asset): asset is Partial<BrandingDemoAsset> => Boolean(asset && typeof asset === 'object'))
     .slice(0, 12)
@@ -132,28 +132,28 @@ export function sanitizeBrandingConfig(
 ): AppBrandingConfig {
   const strict = options?.strictRemoteUrls === true
   const merged = {
-    ...defaultBrandingConfig,
+    ...baseDefaultBrandingConfig,
     ...(input ?? {}),
   }
   return {
-    appName: typeof merged.appName === 'string' && merged.appName.trim() ? merged.appName.trim() : defaultBrandingConfig.appName,
+    appName: typeof merged.appName === 'string' && merged.appName.trim() ? merged.appName.trim() : baseDefaultBrandingConfig.appName,
     appTagline:
       typeof merged.appTagline === 'string' && merged.appTagline.trim()
         ? merged.appTagline.trim()
-        : defaultBrandingConfig.appTagline,
+        : baseDefaultBrandingConfig.appTagline,
     shortDescription:
       typeof merged.shortDescription === 'string' && merged.shortDescription.trim()
         ? merged.shortDescription.trim()
-        : defaultBrandingConfig.shortDescription,
+        : baseDefaultBrandingConfig.shortDescription,
     marketingDescription:
       typeof merged.marketingDescription === 'string' && merged.marketingDescription.trim()
         ? merged.marketingDescription.trim()
-        : defaultBrandingConfig.marketingDescription,
+        : baseDefaultBrandingConfig.marketingDescription,
     primaryLogoUrl:
-      normalizeBrandUrl(merged.primaryLogoUrl, strict) ?? defaultBrandingConfig.primaryLogoUrl,
-    faviconUrl: normalizeBrandUrl(merged.faviconUrl, strict) ?? defaultBrandingConfig.faviconUrl,
-    splashLogoUrl: normalizeBrandUrl(merged.splashLogoUrl, strict) ?? defaultBrandingConfig.splashLogoUrl,
-    headerLogoUrl: normalizeBrandUrl(merged.headerLogoUrl, strict) ?? defaultBrandingConfig.headerLogoUrl,
+      normalizeBrandUrl(merged.primaryLogoUrl, strict) ?? baseDefaultBrandingConfig.primaryLogoUrl,
+    faviconUrl: normalizeBrandUrl(merged.faviconUrl, strict) ?? baseDefaultBrandingConfig.faviconUrl,
+    splashLogoUrl: normalizeBrandUrl(merged.splashLogoUrl, strict) ?? baseDefaultBrandingConfig.splashLogoUrl,
+    headerLogoUrl: normalizeBrandUrl(merged.headerLogoUrl, strict) ?? baseDefaultBrandingConfig.headerLogoUrl,
     demoModel1Url: normalizeBrandUrl(merged.demoModel1Url, strict),
     demoModel2Url: normalizeBrandUrl(merged.demoModel2Url, strict),
     demoModel3Url: normalizeBrandUrl(merged.demoModel3Url, strict),
@@ -164,11 +164,15 @@ export function sanitizeBrandingConfig(
     useLogoInHeader: Boolean(merged.useLogoInHeader),
     useLogoInPublicPages: Boolean(merged.useLogoInPublicPages),
     accentColor:
-      typeof merged.accentColor === 'string' && merged.accentColor.trim() ? merged.accentColor.trim() : defaultBrandingConfig.accentColor,
+      typeof merged.accentColor === 'string' && merged.accentColor.trim() ? merged.accentColor.trim() : baseDefaultBrandingConfig.accentColor,
     published: merged.published !== false,
     updatedAt: typeof merged.updatedAt === 'string' && merged.updatedAt ? merged.updatedAt : nowIso(),
   }
 }
+
+export const defaultBrandingConfig: AppBrandingConfig = sanitizeBrandingConfig(
+  builtInPublicBranding as Partial<AppBrandingConfig>,
+)
 
 function readFromStorage() {
   if (typeof window === 'undefined') return defaultBrandingConfig
